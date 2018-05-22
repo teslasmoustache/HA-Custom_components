@@ -1,9 +1,9 @@
 # custom_component to update Cloudflare records
-![Version](https://img.shields.io/badge/version-1.1.0-green.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.0.0-green.svg?style=for-the-badge)
 
 A component which allows you to update the IP adderesses of your Cloudflare DNS records.
 
-To get started:   
+To get started:  
 Put `/custom_components/cloudflare.py` here:  
 `<config directory>/custom_components/cloudflare.py`  
 
