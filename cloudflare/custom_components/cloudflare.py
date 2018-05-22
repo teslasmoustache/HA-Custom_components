@@ -61,19 +61,19 @@ def setup(hass, config):
 
 def _update_cloudflare(cfupdate, email, key, zone, records):
     """Update DNS records for a given zone."""
-    _LOGGER.info('Starting update for zone %s.', zone)
+    _LOGGER.debug('Starting update for zone %s.', zone)
     #Set headers:
     headers = cfupdate.set_header(email,key)
-    _LOGGER.info('header data defined as: %s.', headers)
+    _LOGGER.debug('header data defined as: %s.', headers)
     #Get zoneID:
     zoneID = cfupdate.get_zoneID(headers, zone)
-    _LOGGER.info('zoneID is set to: %s.', zoneID)
+    _LOGGER.debug('zoneID is set to: %s.', zoneID)
     #Get records to update:
     updateRecords = cfupdate.get_recordInfo(headers, zoneID, zone, records)
-    _LOGGER.info('records: %s.', updateRecords)
+    _LOGGER.debug('records: %s.', updateRecords)
     #Update records:
     result = cfupdate.update_records(headers, zoneID, updateRecords)
-    _LOGGER.info('Update for zone %s is complete.', zone)
+    _LOGGER.debug('Update for zone %s is complete.', zone)
     if result == True:
         result = "Update complete."
     _LOGGER.info(result)
