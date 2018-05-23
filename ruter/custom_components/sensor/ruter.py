@@ -39,6 +39,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 class RuterSensor(Entity):
     def __init__(self, stopid):
+        from pyruter import Ruter
+        self._ruter = Ruter()
         self._stopid = stopid
         self._component = COMPONENT_NAME
         self._componentversion = COMPONENT_VERSION  
@@ -46,9 +48,7 @@ class RuterSensor(Entity):
 
 
     def update(self):
-        from pyruter import Ruter
-        ruter = Ruter()
-        result = ruter.getDepartureInfo(self._stopid)
+        result = self._ruter.getDepartureInfo(self._stopid)
         if result == False :
             return False
         else:
