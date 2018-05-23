@@ -4,13 +4,14 @@ For more details about this component, please refer to the documentation at
 https://github.com/HalfDecent/HA-Custom_components/ruter
 """
 import logging
-import requests
 import dateutil.parser
 import voluptuous as vol
 from datetime import timedelta
 from homeassistant.helpers.entity import Entity
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.switch import (PLATFORM_SCHEMA)
+
+REQUIREMENTS = ['pyruter==0.0.1']
 
 CONF_STOPID = 'stopid'
 
@@ -24,7 +25,7 @@ SCAN_INTERVAL = timedelta(seconds=10)
 
 ICON = 'mdi:bus'
 COMPONENT_NAME = 'ruter'
-COMPONENT_VERSION = '1.0.0'
+COMPONENT_VERSION = '2.0.0'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_STOPID): cv.string,
@@ -43,23 +44,18 @@ class RuterSensor(Entity):
         self._destination = None
         self._stopid = stopid
         self._component = COMPONENT_NAME
-        self._componentversion = COMPONENT_VERSION
+        self._componentversion = COMPONENT_VERSION        
 
     def update(self):
-        baseurl = "http://reisapi.ruter.no/StopVisit/GetDepartures/"
-        fetchurl = baseurl + self._stopid
-        try:
-            departure = requests.get(fetchurl, timeout=3).json()[0]
-        except:
-            _LOGGER.debug("Error fetching new state")
-        else:
-            self._line = departure['MonitoredVehicleJourney']['LineRef']
-            self._destination = departure['MonitoredVehicleJourney']['DestinationName']
-            time = departure['MonitoredVehicleJourney']['MonitoredCall']['ExpectedDepartureTime']
-            deptime = dateutil.parser.parse(time)
-            self._state = deptime.strftime("%H:%M")
-
-
+        from pyruter import Ruter
+        ruter = Ruter()
+        result = ruter.getDepartureInfo(self._stopid)
+        self._line = result[1]
+        self._destination = result[2]
+        time = result[0]
+        deptime = dateutil.parser.parse(time)
+        self._state = deptime.strftime("%H:%M")
+    
     @property
     def name(self):
         return 'ruter'
