@@ -11,7 +11,7 @@ from homeassistant.helpers.entity import Entity
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.switch import (PLATFORM_SCHEMA)
 
-REQUIREMENTS = ['pyruter==0.0.1']
+REQUIREMENTS = ['pyruter==0.0.3']
 
 CONF_STOPID = 'stopid'
 
@@ -25,7 +25,7 @@ SCAN_INTERVAL = timedelta(seconds=10)
 
 ICON = 'mdi:bus'
 COMPONENT_NAME = 'ruter'
-COMPONENT_VERSION = '2.0.0'
+COMPONENT_VERSION = '2.0.1'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_STOPID): cv.string,
@@ -39,22 +39,24 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 class RuterSensor(Entity):
     def __init__(self, stopid):
-        self._state = None
-        self._line = None
-        self._destination = None
         self._stopid = stopid
         self._component = COMPONENT_NAME
-        self._componentversion = COMPONENT_VERSION        
+        self._componentversion = COMPONENT_VERSION  
+        self.update()
+
 
     def update(self):
         from pyruter import Ruter
         ruter = Ruter()
         result = ruter.getDepartureInfo(self._stopid)
-        self._line = result[1]
-        self._destination = result[2]
-        time = result[0]
-        deptime = dateutil.parser.parse(time)
-        self._state = deptime.strftime("%H:%M")
+        if result == False :
+            return False
+        else:
+            self._line = result[1]
+            self._destination = result[2]
+            time = result[0]
+            deptime = dateutil.parser.parse(time)
+            self._state = deptime.strftime("%H:%M")
     
     @property
     def name(self):

@@ -1,5 +1,5 @@
 # custom_component to get info about next departures
-![Version](https://img.shields.io/badge/version-2.0.0-green.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.0.1-green.svg?style=for-the-badge)
 
 A component which allows you to get information about next departure from spesified stop. 
 
