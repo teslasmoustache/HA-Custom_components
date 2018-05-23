@@ -5,7 +5,6 @@ https://github.com/philhawthorne/ha-dockermon
 For more details about this component, please refer to the documentation at
 https://github.com/HalfDecent/HA-Custom_components/hadockermon
 '''
-import requests
 import logging
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
@@ -14,6 +13,8 @@ from datetime import timedelta
 from homeassistant.core import ServiceCall
 from homeassistant.components.switch import (SwitchDevice, 
     PLATFORM_SCHEMA, ENTITY_ID_FORMAT)
+
+REQUIREMENTS = ['pydockermon==0.0.1']
 
 CONF_HOST = 'host'
 CONF_PORT = 'port'
@@ -28,12 +29,11 @@ ATTR_TX_TOTAL = 'network_tx_total'
 ATTR_COMPONENT = 'component'
 ATTR_COMPONENT_VERSION = 'component_version'
 
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(seconds=60)
 
 ICON = 'mdi:docker'
 COMPONENT_NAME = 'hadockermon'
-COMPONENT_VERSION = '1.0.2'
-TIMEOUT = 5
+COMPONENT_VERSION = '2.0.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,25 +46,29 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 def setup_platform(hass, config, add_devices_callback, discovery_info=None):
-    baseurl = 'http://' + config.get(CONF_HOST) + ':' + config.get(CONF_PORT)
-    fetchcontainers = baseurl + '/containers'
-    containers = requests.get(fetchcontainers).json()
+    from pydockermon import Dockermon
+    dm = Dockermon()
+    host = config.get(CONF_HOST)
+    port = config.get(CONF_PORT)
     exclude = config.get(CONF_EXCLUDE)
+    stats = config.get(CONF_STATS)
     dev = []
-    num = 0
-    for items in containers:
-        containername = containers[num]['Names'][0]
-        container = str(containername[1:])
-        num = num + 1
-        if container not in exclude:
-            dev.append(ContainerSwitch(container, 
-                False, config.get(CONF_STATS), baseurl))
-    add_devices_callback(dev, True)
+    containers = dm.listContainers(host)
+    if containers:
+        for container in containers:
+            containername = container['Names'][0][1:]
+            if containername not in exclude:
+                dev.append(ContainerSwitch(containername, 
+                    False, stats, host, port , dm))
+        add_devices_callback(dev, True)
+    else:
+        return False
 
 class ContainerSwitch(SwitchDevice):
-    def __init__(self, name, state, stats, baseurl):
+    def __init__(self, name, state, stats, host, port, dm):
+        self._dm = dm
+        self._state = False
         self._name = name
-        self._state = state
         self._stats = stats
         self._network_stats = None
         self._status = None
@@ -72,48 +76,45 @@ class ContainerSwitch(SwitchDevice):
         self._memory_usage = None
         self._network_rx_total = None
         self._network_tx_total = None
-        self._baseurl = baseurl
+        self._host = host
+        self._port = port
         self._component = COMPONENT_NAME
         self._componentversion = COMPONENT_VERSION
 
     def update(self):
-        fetchurl = self._baseurl + '/container/' + self._name
-        try:
-            containerstate = requests.get(fetchurl, timeout=TIMEOUT).json()
-        except Exception:
-            serverstatus = 'not ok'
-        else:
-            serverstatus = 'ok'
-            _LOGGER.debug("Fetching state for %s...", self._name)
-        if serverstatus != 'ok':
-            _LOGGER.debug("Error fetching state for %s...", self._name)
+        containerstate = self._dm.getContainerState(self._name,
+            self._host, self._port)
+        if containerstate == False:
+            self._state = False
         else:
             state = containerstate['state']
             self._status = containerstate['status']
             self._image = containerstate['image']
             if state == 'running':
                 if self._stats == 'True':
-                    endpoint = '/stats'
-                    statsurl = self._baseurl + '/container/' + self._name + endpoint
-                    try:
-                        containerstats = requests.get(statsurl, timeout=TIMEOUT).json()
-                    except Exception:
-                        _LOGGER.debug("Error fetching stats for %s...", self._name)
+                    containerstats = self._dm.getContainerStats(self._name,
+                        self._host, self._port)
+                    if containerstats == False:
+                        return False
                     else:
-                        _LOGGER.debug("Fetching stats form endpoint for %s...", self._name)
-                        container_memory_usage = containerstats['memory_stats']['usage']/1024/1024
+                        get_memory = containerstats['memory_stats']
+                        memory_usage = get_memory['usage']/1024/1024
                         try:
-                            container_network = containerstats['networks']
+                            containerstats['networks']
                         except Exception:
                             self._network_rx_total = None
                             self._network_tx_total = None
                         else:
                             self._network_stats = 'aviable'
-                            container_network_rx_total = containerstats['networks']['eth0']['rx_bytes']/1024/1024
-                            container_network_tx_total = containerstats['networks']['eth0']['tx_bytes']/1024/1024
-                            self._network_rx_total = str(round(container_network_rx_total, 2)) + ' MB'
-                            self._network_tx_total = str(round(container_network_tx_total, 2)) + ' MB'
-                        self._memory_usage = str(round(container_memory_usage, 2)) + ' MB'
+                            netstats = containerstats['networks']['eth0']
+                            network_rx_total = netstats['rx_bytes']/1024/1024
+                            network_tx_total = netstats['tx_bytes']/1024/1024
+                            self._network_rx_total = str(round(
+                                network_rx_total, 2)) + ' MB'
+                            self._network_tx_total = str(round(
+                                network_tx_total, 2)) + ' MB'
+                        self._memory_usage = str(round(
+                            memory_usage, 2)) + ' MB'
                 self._state = True
             else:
                 self._state = False
@@ -169,9 +170,12 @@ class ContainerSwitch(SwitchDevice):
                 event_data={'domain': 'hassio','service': 'addon_start',
                     'service_data': {'addon': addon}})
         else:
-            endpoint = '/start'
-            runcommand = self._baseurl + '/container/' + self._name + endpoint
-            commandresponse = requests.get(runcommand)
+            command = self._dm.startContainer(self._name, self._host, self._port)
+            if command == False:
+                _LOGGER.error('Container failed to start.')
+            else:
+                self._state = False
+
         self._state = True
         sleep(5)
         self.schedule_update_ha_state()
@@ -182,10 +186,12 @@ class ContainerSwitch(SwitchDevice):
             self.hass.bus.async_fire(event_type='call_service', 
                 event_data={'domain': 'hassio','service': 'addon_stop',
                     'service_data': {'addon': addon}})
+            self._state = False
         else:
-            endpoint = '/stop'
-            runcommand = self._baseurl + '/container/' + self._name + endpoint
-            commandresponse = requests.get(runcommand,)
-        self._state = False
+            command = self._dm.stopContainer(self._name, self._host, self._port)
+            if command == False:
+                _LOGGER.error('Container failed to turn off.')
+            else:
+                self._state = False
         sleep(5)
         self.schedule_update_ha_state()
