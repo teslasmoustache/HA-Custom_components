@@ -1,5 +1,5 @@
 """
-A python module to monitor Uptime Robot monitors.
+A component to monitor Uptime Robot monitors.
 For more details about this component, please refer to the documentation at
 https://github.com/HalfDecent/HA-Custom_components/uptimerobot
 """
