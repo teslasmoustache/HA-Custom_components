@@ -1,5 +1,5 @@
 # custom_component to monitor Uptime Robot monitors.
-![Version](https://img.shields.io/badge/version-1.0.0-green.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.0.1-green.svg?style=for-the-badge)
 
 A component which allows you to monitor Uptime Robot monitors. 
 

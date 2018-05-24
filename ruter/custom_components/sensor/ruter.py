@@ -25,7 +25,7 @@ SCAN_INTERVAL = timedelta(seconds=10)
 
 ICON = 'mdi:bus'
 COMPONENT_NAME = 'ruter'
-COMPONENT_VERSION = '2.0.1'
+COMPONENT_VERSION = '2.0.3'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_STOPID): cv.string,

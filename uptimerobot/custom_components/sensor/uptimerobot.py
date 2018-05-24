@@ -8,7 +8,7 @@ import voluptuous as vol
 from datetime import timedelta
 from homeassistant.helpers.entity import Entity
 import homeassistant.helpers.config_validation as cv
-from homeassistant.components.switch import (PLATFORM_SCHEMA)
+from homeassistant.components.sensor import PLATFORM_SCHEMA
 
 REQUIREMENTS = ['pyuptimerobot==0.0.4']
 
@@ -24,7 +24,7 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 ICON = 'mdi:server'
 COMPONENT_NAME = 'uptimerobot'
-COMPONENT_VERSION = '1.0.0'
+COMPONENT_VERSION = '1.0.1'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_APIKEY): cv.string,
