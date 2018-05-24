@@ -55,7 +55,7 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
         return True
 
 class UptimeRobotSensor(Entity):
-     """Representation of a Uptime Robot sensor."""
+    """Representation of a Uptime Robot sensor."""
     def __init__(self, apikey, monitorid, name, target, type, ur):
         self._name = name
         self._monitorid = monitorid
@@ -68,7 +68,7 @@ class UptimeRobotSensor(Entity):
         self.update()
 
     def update(self):
-         """Get the latest state of the sensor."""
+        """Get the latest state of the sensor."""
         monitor = self._ur.getMonitors(self._apikey, str(self._monitorid))
         if monitor == False:
             _LOGGER.debug('Failed to get new state, trying again later.')
