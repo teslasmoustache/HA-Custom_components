@@ -1,7 +1,7 @@
 # custom_component to monitor Uptime Robot monitors.
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg?style=for-the-badge)
 
-A component which allows you to get information about next departure from spesified stop. 
+A component which allows you to monitor Uptime Robot monitors. 
 
 To get started:   
 Put `/custom_components/sensor/uptimerobot.py` here:  
