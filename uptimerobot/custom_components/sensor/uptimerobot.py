@@ -24,7 +24,7 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 ICON = 'mdi:server'
 COMPONENT_NAME = 'uptimerobot'
-COMPONENT_VERSION = '1.0.1'
+COMPONENT_VERSION = '1.0.2'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_APIKEY): cv.string,
@@ -33,13 +33,15 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 _LOGGER = logging.getLogger(__name__)
 
 def setup_platform(hass, config, add_devices_callback, discovery_info=None):
+    """Set up the Uptime Robot sensors."""
     from pyuptimerobot import UptimeRobot
     ur = UptimeRobot()
     apikey = config.get(CONF_APIKEY)
     monitors = ur.getMonitors(apikey)
+    _LOGGER.debug(monitors)
     dev = []
     if monitors == False:
-        _LOGGER.critical('Something terrible happend :(.')
+        _LOGGER.critical('Something terrible happend :(')
         return False
     else:
         for monitor in monitors['monitors']:
@@ -53,6 +55,7 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
         return True
 
 class UptimeRobotSensor(Entity):
+     """Representation of a Uptime Robot sensor."""
     def __init__(self, apikey, monitorid, name, target, type, ur):
         self._name = name
         self._monitorid = monitorid
@@ -65,6 +68,7 @@ class UptimeRobotSensor(Entity):
         self.update()
 
     def update(self):
+         """Get the latest state of the sensor."""
         monitor = self._ur.getMonitors(self._apikey, str(self._monitorid))
         if monitor == False:
             _LOGGER.debug('Failed to get new state, trying again later.')
@@ -79,18 +83,22 @@ class UptimeRobotSensor(Entity):
 
     @property
     def name(self):
+        """Return the name of the sensor."""
         return self._name
 
     @property
     def state(self):
+        """Return the state of the sensor."""
         return self._state
 
     @property
     def icon(self):
+        """Return the icon to use in the frontend, if any."""
         return ICON
 
     @property
     def device_state_attributes(self):
+        """Return the state attributes of the sensor."""
         return {
             ATTR_TARGET: self._target,
             ATTR_TYPE: self._type,
