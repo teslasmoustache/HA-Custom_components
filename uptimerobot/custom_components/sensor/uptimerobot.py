@@ -9,13 +9,12 @@ from datetime import timedelta
 from homeassistant.helpers.entity import Entity
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.const import CONF_API_KEY
 
 REQUIREMENTS = ['pyuptimerobot==0.0.4']
 
-CONF_APIKEY = 'apikey'
 
 ATTR_TARGET = 'target'
-ATTR_TYPE = 'type'
 ATTR_MONITORID = 'monitor id'
 ATTR_COMPONENT = 'component'
 ATTR_COMPONENT_VERSION = 'component_version'
@@ -24,10 +23,10 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 ICON = 'mdi:server'
 COMPONENT_NAME = 'uptimerobot'
-COMPONENT_VERSION = '1.0.2'
+COMPONENT_VERSION = '1.0.3'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_APIKEY): cv.string,
+    vol.Required(CONF_API_KEY): cv.string,
 })
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     """Set up the Uptime Robot sensors."""
     from pyuptimerobot import UptimeRobot
     ur = UptimeRobot()
-    apikey = config.get(CONF_APIKEY)
+    apikey = config.get(CONF_API_KEY)
     monitors = ur.getMonitors(apikey)
     _LOGGER.debug(monitors)
     dev = []
@@ -49,20 +48,18 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
             monitorid = monitor['id']
             name = monitor['friendly_name']
             target = monitor['url']
-            type = monitor['type']
-            dev.append(UptimeRobotSensor(apikey, monitorid, name, target, type, ur))
+            dev.append(UptimeRobotSensor(apikey, monitorid, name, target, ur))
         add_devices_callback(dev, True)
         return True
 
 class UptimeRobotSensor(Entity):
     """Representation of a Uptime Robot sensor."""
-    def __init__(self, apikey, monitorid, name, target, type, ur):
+    def __init__(self, apikey, monitorid, name, target, ur):
         self._name = name
         self._monitorid = monitorid
         self._apikey = apikey
         self._ur = ur
         self._target = target
-        self._type = type
         self._component = COMPONENT_NAME
         self._componentversion = COMPONENT_VERSION  
         self.update()
@@ -101,7 +98,6 @@ class UptimeRobotSensor(Entity):
         """Return the state attributes of the sensor."""
         return {
             ATTR_TARGET: self._target,
-            ATTR_TYPE: self._type,
             ATTR_MONITORID: self._monitorid,
             ATTR_COMPONENT: self._component,
             ATTR_COMPONENT_VERSION: self._componentversion
