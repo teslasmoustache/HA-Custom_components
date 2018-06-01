@@ -25,4 +25,4 @@ This component is only usefull for users living near Oslo, Norway that uses Rute
 To find the stopid go to [https://ruter.no/reiseplanlegger/Stoppested](https://ruter.no/reiseplanlegger/Stoppested) and search for your stop.
 in the url after you have searched there will be an ID right after the "Stoppested/" in a format like this `(2190400)`, the numbers there is what you need to put in the `stopid:` config option.
 
-The `destionation:` can be used to filter the responses, the name must be exactly the same as on the router.no site.
+The `destionation:` can be used to filter the responses, the name must be exactly the same as on the ruter.no site.
