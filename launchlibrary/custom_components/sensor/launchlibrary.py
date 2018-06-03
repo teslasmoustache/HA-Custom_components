@@ -11,8 +11,8 @@ from homeassistant.helpers.entity import Entity
 ATTR_STREAM = 'stream'
 ATTR_LAUNCH_NAME = 'launch_name'
 ATTR_LAUNCH_TIMESTAMP = 'timestamp'
-ATTR_AGENCY_NAME = 'agengy'
-ATTR_AGENCY_COUNTRY = 'agengy_country_code'
+ATTR_AGENCY_NAME = 'agency'
+ATTR_AGENCY_COUNTRY = 'agency_country_code'
 ATTR_COMPONENT = 'component'
 ATTR_COMPONENT_VERSION = 'component_version'
 
