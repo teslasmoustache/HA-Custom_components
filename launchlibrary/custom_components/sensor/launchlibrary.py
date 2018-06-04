@@ -20,7 +20,7 @@ SCAN_INTERVAL = timedelta(seconds=60)
 
 ICON = 'mdi:rocket'
 COMPONENT_NAME = 'launchlibrary'
-COMPONENT_VERSION = '1.0.0'
+COMPONENT_VERSION = '1.0.1'
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     add_devices([LaunchSensor()])
